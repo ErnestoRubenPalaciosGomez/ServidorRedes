@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import socket # importamos los modulos para trabajar con sockets
 import sys #importamos los modulos para poder acceder a la linea de comandos 
 
@@ -21,7 +22,7 @@ def inicio(ip_servidor,puerto):
 			s.send(mensaje)
 			respuesta = s.recv(1024)
 			print respuesta
-			mensaje = raw_input("Mensaje a enviar : ")
+			mensaje = raw_input(">> ")
 			"""
 			#Instanciamos una entrada de datos para que el cliente pueda enviar mensajes
 			mensaje = raw_input("Mensaje a enviar : ")

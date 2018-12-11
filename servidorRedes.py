@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import socket #importamos el modulo de socket
 from threading import Thread #importamos para los threads
 import random
@@ -23,7 +24,7 @@ class ServidorHilo(Thread):
 			datos = self.socket_cliente.recv(1024)
 			datos = list(datos)
 			if datos[0] == self.mandar_pokemon:
-				self.socket_cliente.send("¿Te gustaria capturar a el pokemon " + )
+				self.socket_cliente.send("¿Te gustaria capturar a el pokemon " + POKEMONES_DISPONIBLES[random.randint(0,6)-1] + "?")
 
 			#Si el mensaje recibido es la palabra close se cierra la aplicacion
 			if datos == "close":
