@@ -3,6 +3,22 @@
 import socket # importamos los modulos para trabajar con sockets
 import sys #importamos los modulos para poder acceder a la linea de comandos 
 
+POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
+pedir_pokemon =  bytearray([10])
+#recibir_pokemon = 20
+recibir_pokemon = bytearray([20])
+si = bytearray([30])
+no = bytearray([31])
+intentos_agotados = bytearray(23)
+opcion_desconocida = bytearray([42])
+numero_intentos_captura_agotados = bytearray([23])
+terminar_sesion = bytearray([32])
+def obtener_indice (respuesta):
+	for i in range(0,50):
+		if bytearray([i]) == respuesta:
+			return i
+	
+
 def inicio(ip_servidor,puerto):
 
 	#Creamos un objeto de tipo socket para el servidor
@@ -18,31 +34,31 @@ def inicio(ip_servidor,puerto):
 		
 		#mensaje para poder establecer la conexion
 		mensaje = bytearray([10])
+		s.send(mensaje)
+
 		while True:
 			#Con la distancia del objeto servidor (s) y el metodo , send enviamos el mensaje
-			s.send(mensaje)
 			respuesta = s.recv(1024)
-			print respuesta
-			mensaje = raw_input(">> ")
-			s.send(mensaje)
-			"""
-			#Instanciamos una entrada de datos para que el cliente pueda enviar mensajes
-			mensaje = raw_input("Mensaje a enviar : ")
-			#Con la distancia del objeto servidor (s) y el metodo , send enviamos el mensaje
-			s.send(mensaje)
-			#Obtenemos la contestacion del cliente con
-			"""
-			respuesta = s.recv(1024)
-			#respuesta = s.recv(1024)
-			#print respuesta
+			respuesta = list(respuesta)
+			print(respuesta)
+			if respuesta[0] == recibir_pokemon:
+				print("¿Te gustaria capturar a el pokemon " + POKEMONES_DISPONIBLES[obtener_indice(respuesta[1])] + "?")
+				mensaje = raw_input(">> ")
+				if mensaje == "si":
+					s.send(si)
 
-			print respuesta
-			if respuesta == "n":
-				break
+				if mensaje == "no":
+					s.send(no)
+				
 
-			#Si por alguna razon el mensaje es close se cierra la conexion
-			if mensaje == "close":
-				break
+			if respuesta[0] == intentos_agotados:
+				s.send(terminar_sesion)
+
+			if respuesta[0] == terminar_sesion:
+				print "Terminando sesion"
+				s.send(terminar_sesion)
+				break;
+		
 		#Imprimimos adios cuando se cierre la conexion
 		print "Adios"
 		#Cerramos la instancia de servidor
@@ -52,5 +68,7 @@ if __name__ == '__main__':
 	if len(sys.argv) == 3:
 		_ , ip_servidor , puerto = sys.argv
 		inicio (ip_servidor , puerto)	
+
 	else:
+		
 		print "Error en los parametros"
