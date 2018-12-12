@@ -12,17 +12,19 @@ def inicio(ip_servidor,puerto):
 		#El primero es la IP del servidor y el segundo es el puerto de conexion 
 		s.connect((ip_servidor , int(puerto)))
 	except:
-		print "Protocol Error 41 \n41 No se pudo conectar con el servidor"
+		print "Protocol Error 41 \n No se pudo conectar con el servidor"
 	else:
 		#Creamos un bucle para retener la conexion
+		
+		#mensaje para poder establecer la conexion
+		mensaje = bytearray([10])
 		while True:
-			#mensaje para poder establecer la conexion
-			mensaje = bytearray([10])
 			#Con la distancia del objeto servidor (s) y el metodo , send enviamos el mensaje
 			s.send(mensaje)
 			respuesta = s.recv(1024)
 			print respuesta
 			mensaje = raw_input(">> ")
+			s.send(mensaje)
 			"""
 			#Instanciamos una entrada de datos para que el cliente pueda enviar mensajes
 			mensaje = raw_input("Mensaje a enviar : ")
@@ -32,7 +34,12 @@ def inicio(ip_servidor,puerto):
 			"""
 			respuesta = s.recv(1024)
 			#respuesta = s.recv(1024)
+			#print respuesta
+
 			print respuesta
+			if respuesta == "n":
+				break
+
 			#Si por alguna razon el mensaje es close se cierra la conexion
 			if mensaje == "close":
 				break

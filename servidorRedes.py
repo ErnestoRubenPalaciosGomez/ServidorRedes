@@ -24,7 +24,15 @@ class ServidorHilo(Thread):
 			datos = self.socket_cliente.recv(1024)
 			datos = list(datos)
 			if datos[0] == self.mandar_pokemon:
-				self.socket_cliente.send("¿Te gustaria capturar a el pokemon " + POKEMONES_DISPONIBLES[random.randint(0,6)-1] + "?")
+				self.socket_cliente.send("¿Te gustaria capturar a el pokemon " + POKEMONES_DISPONIBLES[random.randint(0,6)-1] + "? [s/n]")
+
+			#Opcion para capturar al pokemon
+			if datos[0] == "s":
+				intentos = random.randint(1,10)
+				self.socket_cliente.send("numero de intentos: " + str(intentos))
+			#Se cierra sesion cuando el cliente no quiere capturar el pokemon
+			elif datos[0] == "n":
+				self.socket_cliente.send("Terminando sesion")
 
 			#Si el mensaje recibido es la palabra close se cierra la aplicacion
 			if datos == "close":
