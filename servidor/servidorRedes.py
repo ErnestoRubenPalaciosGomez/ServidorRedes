@@ -9,18 +9,19 @@ HOST = "" #el host de donde vamos a poder recibir peticiones
 PUERTO = 9999  #el puerto donde estaremos escuchando
 
 POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
+
 mandar_pokemon = bytearray([10])
 si = bytearray([30])
 no = bytearray([31])
 intentos_agotados = bytearray([23])
 
 opcion_desconocida = bytearray([42])
-
-numero_intentos_captura_agotados = bytearray([23])
 terminar_sesion = bytearray([32])
 capturado = bytearray([32])
 info_pokemon = bytearray([24])
-
+opcion_desconocida = bytearray([42])
+autentificacion_correcta = bytearray([25])
+autentificacion_incorrecta = bytearray([43])
 
 
 def getBytes(n):
@@ -37,16 +38,31 @@ def getBytes(n):
 	print lista
 	return lista
 
+def updatePokedex (usuario , pokemon):
+	archivo = open("baseDatos/" + usuario , "r")
+	linea = archivo.readline()
+	pokedex = []
+	pokemon = pokemon +"\n"
+	while linea:
+		pokedex.append(linea)
+		linea = archivo.readline()
+	archivo.close()
+	archivo = open("baseDatos/" + usuario , "w")
+	if pokemon not in pokedex:
+		archivo.write(pokemon)
+	archivo.close()
+
+
 #clase para cada uno de los hilos del servidor
 class ServidorHilo(Thread):
-	def __init__(self , socket_cliente , id):
+	def __init__(self , socket_cliente , usr):
 		Thread.__init__(self) #inicializamos el padre
 
 		self.socket_cliente = socket_cliente
-		self.id = id
+		self.usr = usr
 		self.pokemon = random.randint(0,5)
-		self.intentos_captura_cliente = random.randint(1,100)
-		
+		self.intentos_captura_cliente = random.randint(1,20)
+
 
 
 
@@ -55,9 +71,7 @@ class ServidorHilo(Thread):
 			#Recibir datos del cliente
 			datos = self.socket_cliente.recv(1024)
 			datos = list(datos)
-			print (datos)
 			if datos[0] == mandar_pokemon:
-				print self.pokemon
 				self.socket_cliente.send(bytearray([20 , self.pokemon]))
 
 			if datos[0] == opcion_desconocida:
@@ -80,20 +94,26 @@ class ServidorHilo(Thread):
 					mensaje = [22 , self.pokemon] + getBytes(len(contenido))
 					self.socket_cliente.send(bytearray(mensaje))
 					archivo.close()
+					updatePokedex(self.usr , POKEMONES_DISPONIBLES[self.pokemon])
+					
+
 				else:
 					if self.intentos_captura_cliente <= 1:
-						self.socket_cliente.send(self.intentos_agotados)
+						self.socket_cliente.send(intentos_agotados)
 					else :
 						self.socket_cliente.send(bytearray([21 , self.pokemon , self.intentos_captura_cliente]))
 						self.intentos_captura_cliente =  self.intentos_captura_cliente-1
 
 			if datos[0] == terminar_sesion:
-				print "Terminando sesion con el cliente" , self.id 
+				print "Terminando sesion con el cliente " + self.usr 
 				self.socket_cliente.send(terminar_sesion)
 				break;
 
 			if datos[0] == no:
-				# print "Terminando sesion con el cliente" , self.id 
+				self.socket_cliente.send(terminar_sesion)
+
+			if datos[0] == opcion_desconocida:
+
 				self.socket_cliente.send(terminar_sesion)
 
 	
@@ -119,11 +139,30 @@ def inicio():
 		#Instanciamos un objeto sc (socket cliente) para recibir datos , al recibir datos este 
 		#devolvera tambien un obejto que representa la tupla:IP , puerto
 		socket_cliente , addr = socket_servidor.accept()
-		
-		hilo = ServidorHilo(socket_cliente , id) #creamos un hilo para atender a ese cliente
+		datos = socket_cliente.recv(1024)
+		usr , pwd = datos.split(';')
+		archivo = open("baseDatos/usuarios", "r")
+		registrado = False
+		linea = archivo.readline()
+		while not registrado:
+			if linea:
+				usrb , pwdb = linea.split("\t")
+				pwdb = pwdb[:len(pwdb)-1]
+				if usrb == usr and pwdb == pwd:
+					socket_cliente.send(autentificacion_correcta)
+					print ("un cliente se ha conectado el cliente " + usr)
+
+					registrado = True
+			else:
+				registrado = True
+				socket_cliente.send(autentificacion_incorrecta)
+
+			linea = archivo.readline()	
+		archivo.close()
+		hilo = ServidorHilo(socket_cliente , usr) #creamos un hilo para atender a ese cliente
 		hilo.start() # mandamos a correr el hilo 
-		print ("un cliente se ha conectado el cliente " + str(id))
-		id += 1
+
+		
 
 if __name__ == '__main__':
 	inicio()
