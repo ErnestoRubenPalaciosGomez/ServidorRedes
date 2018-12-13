@@ -4,13 +4,15 @@ import socket #importamos el modulo de socket
 from threading import Thread #importamos para los threads
 import random
 
-
+TIMEOUT = 5.0
 HOST = "" #el host de donde vamos a poder recibir peticiones
 PUERTO = 9999  #el puerto donde estaremos escuchando
 
 POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
 
 mandar_pokemon = bytearray([10])
+mandar_pokedex = bytearray([11])
+
 si = bytearray([30])
 no = bytearray([31])
 intentos_agotados = bytearray([23])
@@ -22,8 +24,9 @@ info_pokemon = bytearray([24])
 opcion_desconocida = bytearray([42])
 autentificacion_correcta = bytearray([25])
 autentificacion_incorrecta = bytearray([43])
-
-
+peticion_pokedex = bytearray([26])
+info_pokedex = bytearray([28])
+timeout = bytearray([44])
 def getBytes(n):
 	cadena = str(bin(n))[2:]
 	
@@ -47,7 +50,7 @@ def updatePokedex (usuario , pokemon):
 		pokedex.append(linea)
 		linea = archivo.readline()
 	archivo.close()
-	archivo = open("baseDatos/" + usuario , "w")
+	archivo = open("baseDatos/" + usuario , "a")
 	if pokemon not in pokedex:
 		archivo.write(pokemon)
 	archivo.close()
@@ -55,66 +58,88 @@ def updatePokedex (usuario , pokemon):
 
 #clase para cada uno de los hilos del servidor
 class ServidorHilo(Thread):
-	def __init__(self , socket_cliente , usr):
+	def __init__(self , socket_cliente, identificador):
 		Thread.__init__(self) #inicializamos el padre
 
 		self.socket_cliente = socket_cliente
-		self.usr = usr
 		self.pokemon = random.randint(0,5)
 		self.intentos_captura_cliente = random.randint(1,20)
-
+		self.identificador = identificador
 
 
 
 	def run (self):
-		while True:
-			#Recibir datos del cliente
-			datos = self.socket_cliente.recv(1024)
-			datos = list(datos)
-			if datos[0] == mandar_pokemon:
-				self.socket_cliente.send(bytearray([20 , self.pokemon]))
+		self.socket_cliente.settimeout(TIMEOUT)
+		try :
+			while True:
+				#Recibir datos del cliente
+				datos = self.socket_cliente.recv(1024)
+				datos = list(datos)
+				if datos[0] == mandar_pokemon:
+					self.socket_cliente.send(bytearray([20 , self.pokemon]))
 
-			if datos[0] == opcion_desconocida:
-				self.socket_cliente("Protocol Error 42 : 42 Opcion desconocida ")
+				if datos[0] == opcion_desconocida:
+					self.socket_cliente("Protocol Error 42 : 42 Opcion desconocida ")
 
-			if datos[0] == info_pokemon:
-				archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
-				contenido = archivo.read(1024)
-				while contenido:
-					self.socket_cliente.send(contenido)
-					contenido = archivo.read(1024)
-				archivo.close()
-				self.socket_cliente.send(contenido)
-
-			if datos[0] == si:
-				capturado = random.randint(0,9)
-				if capturado <= 3:
+				if datos[0] == info_pokemon:
 					archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
+					contenido = archivo.read(1024)
+					while contenido:
+						self.socket_cliente.send(contenido)
+						contenido = archivo.read(1024)
+					archivo.close()
+
+				if datos[0] == si:
+					capturado = random.randint(0,9)
+					if capturado <= 3:
+						archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
+						contenido = archivo.read()
+						mensaje = [22 , self.pokemon] + getBytes(len(contenido))
+						self.socket_cliente.send(bytearray(mensaje))
+						archivo.close()
+						updatePokedex(self.usr , POKEMONES_DISPONIBLES[self.pokemon])
+						
+
+					else:
+						if self.intentos_captura_cliente <= 1:
+							self.socket_cliente.send(intentos_agotados)
+						else :
+							self.socket_cliente.send(bytearray([21 , self.pokemon , self.intentos_captura_cliente]))
+							self.intentos_captura_cliente =  self.intentos_captura_cliente-1
+
+				if datos[0] == terminar_sesion:
+					print "Terminando sesion con el cliente " , self.identificador
+					self.socket_cliente.send(terminar_sesion)
+					break;
+
+				if datos[0] == no:
+					self.socket_cliente.send(terminar_sesion)
+
+				if datos[0] == opcion_desconocida:
+					self.socket_cliente.send(opcion_desconocida)
+
+				if datos[0] == mandar_pokedex:
+					archivo = open ("baseDatos/" + str(self.identificador) , "rb")
 					contenido = archivo.read()
-					mensaje = [22 , self.pokemon] + getBytes(len(contenido))
+					print contenido
+					mensaje = [27 , self.identificador] + getBytes(len(contenido))
 					self.socket_cliente.send(bytearray(mensaje))
 					archivo.close()
-					updatePokedex(self.usr , POKEMONES_DISPONIBLES[self.pokemon])
-					
+				
+				if datos[0] == info_pokedex:
+					archivo = open ("baseDatos/" + str(self.identificador) , "rb")
+					contenido = archivo.read(1024)
+					print contenido
+					while contenido:
+						self.socket_cliente.send(contenido)
+						contenido = archivo.read(1024)
+					archivo.close()
+				if datos[0] == timeout:
+					break
+		except:
+			print "tiempo excedido mandando mensaje..."
+			self.socket_cliente.send(timeout)
 
-				else:
-					if self.intentos_captura_cliente <= 1:
-						self.socket_cliente.send(intentos_agotados)
-					else :
-						self.socket_cliente.send(bytearray([21 , self.pokemon , self.intentos_captura_cliente]))
-						self.intentos_captura_cliente =  self.intentos_captura_cliente-1
-
-			if datos[0] == terminar_sesion:
-				print "Terminando sesion con el cliente " + self.usr 
-				self.socket_cliente.send(terminar_sesion)
-				break;
-
-			if datos[0] == no:
-				self.socket_cliente.send(terminar_sesion)
-
-			if datos[0] == opcion_desconocida:
-
-				self.socket_cliente.send(terminar_sesion)
 
 	
 			
@@ -130,11 +155,8 @@ def inicio():
 	#Aceptamos conexciones entrantes con el metodo listen , y ademas aplicamos como parametro 
 	#el numero de conexiones que podemos aceptar
 	socket_servidor.listen(0)
-
 	salir = False
-
 	print ("esperando cliente ...")
-	id = 1
 	while not salir:
 		#Instanciamos un objeto sc (socket cliente) para recibir datos , al recibir datos este 
 		#devolvera tambien un obejto que representa la tupla:IP , puerto
@@ -144,14 +166,14 @@ def inicio():
 		archivo = open("baseDatos/usuarios", "r")
 		registrado = False
 		linea = archivo.readline()
+		identificador = 20
 		while not registrado:
 			if linea:
-				usrb , pwdb = linea.split("\t")
+				identificador, usrb , pwdb = linea.split("\t")
 				pwdb = pwdb[:len(pwdb)-1]
+				identificador= int(identificador)
 				if usrb == usr and pwdb == pwd:
 					socket_cliente.send(autentificacion_correcta)
-					print ("un cliente se ha conectado el cliente " + usr)
-
 					registrado = True
 			else:
 				registrado = True
@@ -159,8 +181,9 @@ def inicio():
 
 			linea = archivo.readline()	
 		archivo.close()
-		hilo = ServidorHilo(socket_cliente , usr) #creamos un hilo para atender a ese cliente
+		hilo = ServidorHilo(socket_cliente , identificador) #creamos un hilo para atender a ese cliente
 		hilo.start() # mandamos a correr el hilo 
+		print "un cliente se ha conectado"
 
 		
 
