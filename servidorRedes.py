@@ -9,6 +9,33 @@ HOST = "" #el host de donde vamos a poder recibir peticiones
 PUERTO = 9999  #el puerto donde estaremos escuchando
 
 POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
+mandar_pokemon = bytearray([10])
+si = bytearray([30])
+no = bytearray([31])
+intentos_agotados = bytearray([23])
+
+opcion_desconocida = bytearray([42])
+
+numero_intentos_captura_agotados = bytearray([23])
+terminar_sesion = bytearray([32])
+capturado = bytearray([32])
+info_pokemon = bytearray([24])
+
+
+
+def getBytes(n):
+	cadena = str(bin(n))[2:]
+	
+	while len(cadena) < 32	:
+		cadena = "0"+cadena
+	print cadena 
+	lista = []
+	lista.append(int(cadena[:8] , 2))
+	lista.append(int(cadena[8:16] , 2))
+	lista.append(int(cadena[16:24] , 2))
+	lista.append(int(cadena[24:32] , 2))
+	print lista
+	return lista
 
 #clase para cada uno de los hilos del servidor
 class ServidorHilo(Thread):
@@ -17,28 +44,9 @@ class ServidorHilo(Thread):
 
 		self.socket_cliente = socket_cliente
 		self.id = id
-		self.mandar_pokemon = bytearray([10])
-		self.si = bytearray([30])
-		self.no = bytearray([31])
-		self.intentos_agotados = bytearray([23])
-		self.intentos_captura_cliente = random.randint(1,100)
-		self.opcion_desconocida = bytearray([42])
 		self.pokemon = random.randint(0,5)
-		self.numero_intentos_captura_agotados = bytearray([23])
-		self.terminar_sesion = bytearray([32])
+		self.intentos_captura_cliente = random.randint(1,100)
 		
-	def capturaPokemon():
-		self.estado_anterior = 3
-		capturado = random.randint(0,10)
-		if capturado <= 3:
-			#mandar la imagen del pokemon
-			self.socket_cliente.send("mande la foto")
-		else:
-			if self.intentos_captura_cliente <= 1:
-				self.socket_cliente.send(self.intentos_agotados)
-			else :
-				self.socket_cliente.send(bytearray([21 , self.pokemon , self.intentos_captura_cliente]))
-				self.intentos_captura_cliente -=1
 
 
 
@@ -48,41 +56,45 @@ class ServidorHilo(Thread):
 			datos = self.socket_cliente.recv(1024)
 			datos = list(datos)
 			print (datos)
-			if datos[0] == self.mandar_pokemon:
+			if datos[0] == mandar_pokemon:
 				print self.pokemon
 				self.socket_cliente.send(bytearray([20 , self.pokemon]))
 
-			if datos[0] == self.opcion_desconocida:
+			if datos[0] == opcion_desconocida:
 				self.socket_cliente("Protocol Error 42 : 42 Opcion desconocida ")
 
-			if datos[0] == self.si:
-				self.capturaPokemon()
+			if datos[0] == info_pokemon:
+				archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
+				contenido = archivo.read(1024)
+				while contenido:
+					self.socket_cliente.send(contenido)
+					contenido = archivo.read(1024)
+				archivo.close()
+				self.socket_cliente.send(contenido)
 
-			if datos[0] == self.terminar_sesion:
+			if datos[0] == si:
+				capturado = random.randint(0,9)
+				if capturado <= 3:
+					archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
+					contenido = archivo.read()
+					mensaje = [22 , self.pokemon] + getBytes(len(contenido))
+					self.socket_cliente.send(bytearray(mensaje))
+					archivo.close()
+				else:
+					if self.intentos_captura_cliente <= 1:
+						self.socket_cliente.send(self.intentos_agotados)
+					else :
+						self.socket_cliente.send(bytearray([21 , self.pokemon , self.intentos_captura_cliente]))
+						self.intentos_captura_cliente =  self.intentos_captura_cliente-1
+
+			if datos[0] == terminar_sesion:
 				print "Terminando sesion con el cliente" , self.id 
-				self.socket_cliente.send(self.terminar_sesion)
+				self.socket_cliente.send(terminar_sesion)
 				break;
 
-			if datos[0] == self.no:
+			if datos[0] == no:
 				# print "Terminando sesion con el cliente" , self.id 
-				self.socket_cliente.send(self.terminar_sesion)
-
-
-			"""
-			#Opcion para capturar al pokemon
-			if datos[0] == "s":
-				intentos = random.randint(1,10)
-				self.socket_cliente.send("numero de intentos: " + str(intentos))
-			#Se cierra sesion cuando el cliente no quiere capturar el pokemon
-			elif datos[0] == "n":
-				self.socket_cliente.send("Terminando sesion")
-
-			#Si el mensaje recibido es la palabra close se cierra la aplicacion
-			if datos == "close":
-				break
-			#si se reciben los datos nos muestra la IP y el mensaje recibido
-			print  "el cliente "+ str(self.id) + " dice: " , datos
-			#Devolvemos el mensaje al cliente"""
+				self.socket_cliente.send(terminar_sesion)
 
 	
 			

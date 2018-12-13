@@ -13,11 +13,27 @@ intentos_agotados = bytearray(23)
 opcion_desconocida = bytearray([42])
 numero_intentos_captura_agotados = bytearray([23])
 terminar_sesion = bytearray([32])
+no_capturado = bytearray([21])
+pokemon_capturado = bytearray([22])
+info_pokemon = bytearray([24])
+id_pokemon= -1
 def obtener_indice (respuesta):
-	for i in range(0,50):
+	for i in range(0,255):
 		if bytearray([i]) == respuesta:
 			return i
 	
+def getNum(lista_bytes):
+	lista = lista_bytes[2:]
+	print lista
+	resultado = ""
+	for x in lista:
+		y = obtener_indice(x)
+		y = str(bin(y))[2:]
+		while len(y) < 8:
+			y = "0" + y
+		resultado = resultado + y
+	print resultado
+	return int(resultado , 2)
 
 def inicio(ip_servidor,puerto):
 
@@ -33,8 +49,7 @@ def inicio(ip_servidor,puerto):
 		#Creamos un bucle para retener la conexion
 		
 		#mensaje para poder establecer la conexion
-		mensaje = bytearray([10])
-		s.send(mensaje)
+		s.send(pedir_pokemon)
 
 		while True:
 			#Con la distancia del objeto servidor (s) y el metodo , send enviamos el mensaje
@@ -49,11 +64,32 @@ def inicio(ip_servidor,puerto):
 
 				if mensaje == "no":
 					s.send(no)
-				
+					
+			if respuesta[0] ==  no_capturado:
+				print("¿Intentar capturar de nuevo? Quedan " + str(obtener_indice(respuesta[2]))+ " intentos")
+				mensaje = raw_input(">> ")
+				if mensaje == "si":
+					s.send(si)
+
+				if mensaje == "no":
+					s.send(no)
 
 			if respuesta[0] == intentos_agotados:
 				s.send(terminar_sesion)
 
+			if respuesta[0] == pokemon_capturado:
+				s.send(info_pokemon)
+				print "pokemon capturado"
+				dato = getNum(respuesta)
+				print dato
+				archivo = open("pokemonesCapturados/" + POKEMONES_DISPONIBLES[obtener_indice(respuesta[1])] + ".png" , "wb")
+				while dato > 0:
+					respuesta = s.recv(1024)
+					archivo.write(respuesta)
+					dato -=1024
+				archivo.close()
+				s.send(terminar_sesion)
+				
 			if respuesta[0] == terminar_sesion:
 				print "Terminando sesion"
 				s.send(terminar_sesion)
@@ -67,8 +103,7 @@ def inicio(ip_servidor,puerto):
 if __name__ == '__main__':
 	if len(sys.argv) == 3:
 		_ , ip_servidor , puerto = sys.argv
-		inicio (ip_servidor , puerto)	
+		inicio (ip_servidor , puerto)
 
 	else:
-		
 		print "Error en los parametros"
