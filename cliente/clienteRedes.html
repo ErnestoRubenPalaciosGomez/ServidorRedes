@@ -1,0 +1,67 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module clienteRedes</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>clienteRedes</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/zombie2011/Documentos/ServidorRedes/cliente/clienteRedes.py">/home/zombie2011/Documentos/ServidorRedes/cliente/clienteRedes.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="socket.html">socket</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-enviaRespuesta"><strong>enviaRespuesta</strong></a>(socket)</dt><dd><tt>Funcion&nbsp;que&nbsp;manda&nbsp;al&nbsp;servidor&nbsp;la&nbsp;respuesta&nbsp;de&nbsp;si&nbsp;y&nbsp;no<br>
+Se&nbsp;ocupa&nbsp;cuando&nbsp;el&nbsp;mensaje&nbsp;del&nbsp;servidor&nbsp;es&nbsp;20&nbsp;o&nbsp;21</tt></dd></dl>
+ <dl><dt><a name="-enviaUsuarioPass"><strong>enviaUsuarioPass</strong></a>(socket)</dt><dd><tt>Funcion&nbsp;que&nbsp;envia&nbsp;el&nbsp;usuario&nbsp;y&nbsp;contraseña&nbsp;con&nbsp;los&nbsp;que&nbsp;nos&nbsp;queremos&nbsp;conectar&nbsp;al&nbsp;servidor&nbsp;por&nbsp;medio<br>
+del&nbsp;socket</tt></dd></dl>
+ <dl><dt><a name="-getNum"><strong>getNum</strong></a>(lista_bytes)</dt><dd><tt>Dada&nbsp;una&nbsp;lista&nbsp;de&nbsp;bytes&nbsp;se&nbsp;quitan&nbsp;los&nbsp;primeros&nbsp;2&nbsp;que&nbsp;son&nbsp;mensajes&nbsp;del&nbsp;servidor<br>
+y&nbsp;de&nbsp;los&nbsp;4&nbsp;restantes&nbsp;nos&nbsp;dan&nbsp;el&nbsp;numero&nbsp;en&nbsp;decimal&nbsp;que&nbsp;forman</tt></dd></dl>
+ <dl><dt><a name="-inicio"><strong>inicio</strong></a>(ip_servidor, puerto)</dt><dd><tt>Funcion&nbsp;principal&nbsp;que&nbsp;inicial&nbsp;al&nbsp;cliente&nbsp;con&nbsp;<br>
+&lt;ip_servidor&gt;&nbsp;:&nbsp;la&nbsp;ip&nbsp;del&nbsp;servidor&nbsp;al&nbsp;cual&nbsp;nos&nbsp;vamos&nbsp;a&nbsp;conectar<br>
+&lt;puerto&gt;&nbsp;:&nbsp;el&nbsp;puerto&nbsp;por&nbsp;el&nbsp;cual&nbsp;se&nbsp;va&nbsp;a&nbsp;establecer&nbsp;la&nbsp;comunicacion</tt></dd></dl>
+ <dl><dt><a name="-menu"><strong>menu</strong></a>(socket)</dt><dd><tt>menu&nbsp;de&nbsp;inicio&nbsp;que&nbsp;nos&nbsp;da&nbsp;las&nbsp;acciones&nbsp;que&nbsp;se&nbsp;pueden&nbsp;hacer&nbsp;una&nbsp;vez&nbsp;que&nbsp;ya&nbsp;se&nbsp;estrablecio&nbsp;conexion<br>
+con&nbsp;el&nbsp;servidor&nbsp;y&nbsp;manda&nbsp;esa&nbsp;opcion&nbsp;al&nbsp;servidor</tt></dd></dl>
+ <dl><dt><a name="-obtenerNum"><strong>obtenerNum</strong></a>(respuesta)</dt><dd><tt>Nos&nbsp;dice&nbsp;que&nbsp;entero&nbsp;corresponde&nbsp;&lt;respuesta&gt;</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>POKEMONES_DISPONIBLES</strong> = ['Gengar', 'Yveltal', 'Blaziken', 'Alakazam', 'Bisharp', 'Charizard']<br>
+<strong>TIMEOUT</strong> = 5.0<br>
+<strong>autentificacion_correcta</strong> = bytearray(b'\x19')<br>
+<strong>autentificacion_incorrecta</strong> = bytearray(b'+')<br>
+<strong>info_pokedex</strong> = bytearray(b'\x1c')<br>
+<strong>info_pokemon</strong> = bytearray(b'\x18')<br>
+<strong>intentos_agotados</strong> = bytearray(b'\x17')<br>
+<strong>no</strong> = bytearray(b'\x1f')<br>
+<strong>no_capturado</strong> = bytearray(b'\x15')<br>
+<strong>opcion_desconocida</strong> = bytearray(b'*')<br>
+<strong>pedir_pokedex</strong> = bytearray(b'\x0b')<br>
+<strong>pedir_pokemon</strong> = bytearray(b'\n')<br>
+<strong>pokemon_capturado</strong> = bytearray(b'\x16')<br>
+<strong>recibir_pokedex</strong> = bytearray(b'\x1b')<br>
+<strong>recibir_pokemon</strong> = bytearray(b'\x14')<br>
+<strong>si</strong> = bytearray(b'\x1e')<br>
+<strong>terminar_sesion</strong> = bytearray(b' ')<br>
+<strong>timeout</strong> = bytearray(b',')</td></tr></table>
+</body></html>

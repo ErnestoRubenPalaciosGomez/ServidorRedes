@@ -1,35 +1,47 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import socket # importamos los modulos para trabajar con sockets
-import sys #importamos los modulos para poder acceder a la linea de comandos 
+import sys #importamos los modulos para poder acceder a la linea de comandos
+
 TIMEOUT = 5.0
 POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
+
 pedir_pokemon =  bytearray([10])
 pedir_pokedex = bytearray([11])
-#recibir_pokemon = 20
+
+
 recibir_pokemon = bytearray([20])
-si = bytearray([30])
-no = bytearray([31])
-intentos_agotados = bytearray([23])
-opcion_desconocida = bytearray([42])
-numero_intentos_captura_agotados = bytearray([23])
-terminar_sesion = bytearray([32])
 no_capturado = bytearray([21])
 pokemon_capturado = bytearray([22])
+intentos_agotados = bytearray([23])
 info_pokemon = bytearray([24])
-id_pokemon= -1
 autentificacion_correcta = bytearray([25])
-autentificacion_incorrecta = bytearray([43])
-iteracion = 0
 recibir_pokedex  = bytearray([27])
 info_pokedex = bytearray([28])
+
+si = bytearray([30])
+no = bytearray([31])
+terminar_sesion = bytearray([32])
+
+
+opcion_desconocida = bytearray([42])
+autentificacion_incorrecta = bytearray([43])
 timeout = bytearray([44])
+
+
 def obtenerNum(respuesta):
+	"""
+		Nos dice que entero corresponde <respuesta>
+	"""
 	for i in range(0,255):
 		if bytearray([i]) == respuesta:
 			return i
 	
 def getNum(lista_bytes):
+	"""
+		Dada una lista de bytes se quitan los primeros 2 que son mensajes del servidor
+		y de los 4 restantes nos dan el numero en decimal que forman
+	"""
 	lista = lista_bytes[2:]
 	resultado = ""
 	for x in lista:
@@ -41,6 +53,10 @@ def getNum(lista_bytes):
 	return int(resultado , 2)
 
 def enviaRespuesta(socket):
+	"""
+		Funcion que manda al servidor la respuesta de si y no
+		Se ocupa cuando el mensaje del servidor es 20 o 21
+	"""
 	mensaje = raw_input(">> ")
 	if mensaje == "s":
 		socket.send(si)
@@ -49,12 +65,20 @@ def enviaRespuesta(socket):
 		socket.send(no)
 
 def enviaUsuarioPass(socket):
+	"""
+		Funcion que envia el usuario y contraseña con los que nos queremos conectar al servidor por medio
+		del socket
+	"""
 	usuario = raw_input("Usuario: ")
 	contra = raw_input("Contraseña: ")
 	usuario_sesion = usuario
 	socket.send(usuario + ";" + contra) 
 
 def menu(socket):
+	"""
+		menu de inicio que nos da las acciones que se pueden hacer una vez que ya se estrablecio conexion
+		con el servidor y manda esa opcion al servidor 
+	"""
 	print "Que quieres hacer:\n"
 	print "1 .- Revisar tu pokedex\n"
 	print "2 .- Pedir un pokemon"
@@ -68,6 +92,11 @@ def menu(socket):
 			socket.send(opcion_desconocida)
 
 def inicio(ip_servidor,puerto):
+	"""
+		Funcion principal que inicial al cliente con 
+		<ip_servidor> : la ip del servidor al cual nos vamos a conectar
+		<puerto> : el puerto por el cual se va a establecer la comunicacion
+	"""
 
 	#Creamos un objeto de tipo socket para el servidor
 	s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
@@ -84,13 +113,12 @@ def inicio(ip_servidor,puerto):
 		#s.send(pedir_pokemon)
 		enviaUsuarioPass(s)
 		#iteracion = 0
-		s.settimeout(TIMEOUT)
 		try : 
 			while True:
 				#Con la distancia del objeto servidor (s) y el metodo , send enviamos el mensaje
 				respuesta = s.recv(1024)
-				#print(respuesta)
 				respuesta = list(respuesta)
+				#s.settimeout(TIMEOUT)
 				if respuesta[0] == autentificacion_correcta:
 					menu(s)
 
@@ -111,13 +139,14 @@ def inicio(ip_servidor,puerto):
 				if respuesta[0] == pokemon_capturado:
 					s.send(info_pokemon)
 					dato = getNum(respuesta)
-					print usuario_sesion
 					archivo = open("pokemonesCapturados/" + POKEMONES_DISPONIBLES[obtenerNum(respuesta[1])] + ".png" , "wb")
+					print "Obteniendo el pokemon ..."
 					while dato > 0:
 						respuesta = s.recv(1024)
 						archivo.write(respuesta)
 						dato -=1024
 					archivo.close()
+					print "pokemon guardado con exito"
 					s.send(terminar_sesion)
 					
 				if respuesta[0] == terminar_sesion:
@@ -132,14 +161,14 @@ def inicio(ip_servidor,puerto):
 				if respuesta[0] == recibir_pokedex:
 					s.send(info_pokedex)
 					dato = getNum(respuesta)
-					print respuesta 
+					print "Obteniendo la pokedex ..."
 					archivo = open("pokedex/" + str(obtenerNum(respuesta[1]))  + ".pokedex" , "wb")
 					while dato > 0:
 						contenido = s.recv(1024)
-						print contenido
 						archivo.write(contenido)
 						dato -=1024
 					archivo.close()
+					print "pokedex guardada con exito"
 					s.send(terminar_sesion)
 				
 				if respuesta[0] == timeout:
