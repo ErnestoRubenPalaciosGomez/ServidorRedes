@@ -1,0 +1,52 @@
+.TH Cliente ClientePokemon
+.SH NAME: ClientePokemon
+.SH SYNOPSIS
+Programa que simula un cliente para conectarse al servidor con direccion 127.0.0.1 con el puerto 9999
+.br
+.PP
+.B enviaRespuesta(socket)
+.SH Description
+.PP
+socket
+.br
+Funcion que manda al servidor la respuesta de si y no
+.br
+Se ocupa cuando el mensaje del servidor es 20 o 21
+.br
+.PP
+.B enviaUsuarioPass(socket)
+.SH Description
+.PP
+socket
+.br
+Funcion que envia el usuario y contraseña con los que nos queremos conectar al servidor por medio del socket
+.br
+.PP
+.B getNum(lista_bytes)
+.SH Description
+.PP
+lista_bytes
+.br
+Dada una lista de bytes se quitan los primeros 2 que son mensajes del servidor y de los 4 restantes nos dan el numero en decimales que forman
+.br
+.PP
+.B inicio(ip_servidor, puerto)
+.SH Description
+.PP
+Funcion principal que inicia al cliente con
+.br
+<ip_servidor>: la ip del servidor al cual nos vamos a conectar
+<puerto>: el puerto por el cual se va a establecer la comunicacion
+.br
+.PP
+.B menu(socket)
+.SH Description
+.PP
+menu de inicio que nos da las acciones que se pueden hacer una vez que ya se establecio conexion con el servidor y manda esa opcion al servidor
+.br
+.PP
+.B obtenerNum(respuesta)
+.SH Description
+.PP
+Nos dice que entero corresponde <respuesta>
+.br
