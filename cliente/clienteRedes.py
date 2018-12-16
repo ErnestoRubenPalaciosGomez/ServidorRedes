@@ -8,14 +8,13 @@ POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisha
 
 pedir_pokemon =  bytearray([10])
 pedir_pokedex = bytearray([11])
-
+autentificacion_correcta = bytearray([12])
 
 recibir_pokemon = bytearray([20])
 no_capturado = bytearray([21])
 pokemon_capturado = bytearray([22])
 intentos_agotados = bytearray([23])
 info_pokemon = bytearray([24])
-autentificacion_correcta = bytearray([25])
 recibir_pokedex  = bytearray([27])
 info_pokedex = bytearray([28])
 

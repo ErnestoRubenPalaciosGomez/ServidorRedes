@@ -9,18 +9,16 @@ HOST = "" #el host de donde vamos a poder recibir peticiones
 PUERTO = 9999  #el puerto donde estaremos escuchando
 
 POKEMONES_DISPONIBLES = ["Gengar" , "Yveltal" , "Blaziken" , "Alakazam" , "Bisharp" , "Charizard"]
-#peticiones del cliente 
+
 mandar_pokemon = bytearray([10])
 mandar_pokedex = bytearray([11])
+autentificacion_correcta = bytearray([12])
 
-#informacion para el usuario
 intentos_agotados = bytearray([23])
 info_pokemon = bytearray([24])
-autentificacion_correcta = bytearray([25])
 peticion_pokedex = bytearray([26])
 info_pokedex = bytearray([28])
 
-#recibidos del cliente
 si = bytearray([30])
 no = bytearray([31])
 terminar_sesion = bytearray([32])
@@ -92,9 +90,6 @@ class ServidorHilo(Thread):
 			#self.socket_cliente.settimeout(TIMEOUT)
 			if datos[0] == mandar_pokemon:
 				self.socket_cliente.send(bytearray([20 , self.pokemon]))
-
-			if datos[0] == opcion_desconocida:
-				self.socket_cliente("Protocol Error 42 : 42 Opcion desconocida ")
 
 			if datos[0] == info_pokemon:
 				archivo = open("pokemonesDisponibles/" + POKEMONES_DISPONIBLES[self.pokemon] + ".png" , "rb")
